@@ -30,6 +30,7 @@ class SpinupWp {
 			add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_item' ), 100 );
 			add_action( 'admin_init', array( $this, 'handle_manual_purge_action' ) );
 			add_action( 'admin_notices', array( $this, 'show_purge_notice' ) );
+			add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
 		}
 	}
 
@@ -94,12 +95,83 @@ class SpinupWp {
 	}
 
 	/**
+	 * Transition post status.
+	 *
+	 * When a post is transitioned to 'publish' for the first time purge the
+	 * entire site cache. This ensures blog pages, category archives, author archives
+	 * and search results are accurate. Otherwise, only update the current post URL.
+	 *
+	 * @param string  $new_status
+	 * @param string  $old_status
+	 * @param WP_Post $post
+	 *
+	 * @return bool
+	 */
+	public function transition_post_status( $new_status, $old_status, $post ) {
+		if ( ! in_array( get_post_type( $post ), array( 'post', 'page' ) ) ) {
+			return false;
+		}
+
+		if ( $new_status !== 'publish' ) {
+			return false;
+		}
+
+		if ( $old_status === 'publish' ) {
+			return $this->purge_post( $post );
+		}
+
+		return $this->purge_cache();
+	}
+
+	/**
+	 * Purge the current post URL.
+	 *
+	 * @param WP_Post $post
+	 *
+	 * @return bool
+	 */
+	protected function purge_post( $post ) {
+		return $this->purge_url( get_permalink( $post ) );
+	}
+	/**
+	 * Purge a single URL from the cache.
+	 *
+	 * @param string $url
+	 *
+	 * @return bool
+	 */
+	protected function purge_url( $url ) {
+		$path = $this->get_cache_path_for_url( $url );
+		
+		return $this->delete( $path );
+	}
+
+	/**
 	 * Purge entire cache.
 	 *
 	 * @return bool
 	 */
 	public function purge_cache() {
 		return $this->delete( $this->cache_path, true );
+	}
+
+	/**
+	 * Get's the cache file path for a given URL.
+	 *
+	 * Must be using the default Nginx cache options (levels=1:2)
+	 * and (fastcgi_cache_key "$scheme$request_method$host$request_uri").
+	 * https://www.digitalocean.com/community/tutorials/how-to-setup-fastcgi-caching-with-nginx-on-your-vps#purging-the-cache
+	 *
+	 * @param string $url
+	 *
+	 * @return string
+	 */
+	protected function get_cache_path_for_url( $url ) {
+		$parsed_url = parse_url( trailingslashit( $url ) );
+		$cache_key  = md5( $parsed_url['scheme'] . 'GET' . $parsed_url['host'] . $parsed_url['path'] );
+		$cache_path = substr( $cache_key, -1 ) . '/' . substr( $cache_key, -3, 2 ) . '/' . $cache_key;
+		
+		return trailingslashit( $this->cache_path ) . $cache_path;
 	}
 
 	/**
