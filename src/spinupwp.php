@@ -5,7 +5,7 @@ Plugin URI: https://spinupwp.com
 Description: Helper plugin for SpinupWP.
 Author: Delicious Brains
 Version: 1.0
-Author URI: https://deliciousbrainss.com
+Author URI: https://deliciousbrains.com/
 */
 
 // Exit if accessed directly
