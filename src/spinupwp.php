@@ -185,7 +185,12 @@ class SpinupWp {
 	protected function delete( $path, $recursive = false ) {
 		global $wp_filesystem;
 
-		if ( ! WP_Filesystem( false, $path, true ) ) {
+		$context = $path;
+		if ( is_file( $path ) ) {
+			$context = dirname( $path );
+		}
+
+		if ( ! WP_Filesystem( false, $context, true ) ) {
 			return false;
 		}
 
