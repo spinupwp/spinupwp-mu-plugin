@@ -90,9 +90,11 @@ class SpinupWp {
 		}
 
 		if ( $success ) {
-			echo '<div class="updated notice"><p>Nginx cache purged.</p></div>';
+			$msg = __( 'Nginx cache purged.', 'spinupwp' );
+			echo "<div class=\"notice notice-success\"><p>{$msg}</p></div>";
 		} else {
-			echo '<div class="error notice"><p>Nginx cache could not be purged.</p></div>';
+			$msg = __( 'Nginx cache could not be purged.', 'spinupwp' );
+			echo "<div class=\"notice notice-error\"><p>{$msg}</p></div>";
 		}
 	}
 
@@ -209,8 +211,8 @@ class SpinupWp {
 			return;
 		}
 
-		$msg  = 'Your site is ready to go! You will need to set up email if you wish to send outgoing emails from this site.';
-		$link = '<a href="#">More&nbsp;info&nbsp;&raquo;</a>';
+		$msg  = __( 'Your site is ready to go! You will need to set up email if you wish to send outgoing emails from this site.', 'spinupwp' );
+		$link = sprintf( '<a href="%s">%s &raquo;</a>', '#', __( 'More info', 'spinupwp' ) );
 		echo "<div class=\"notice notice-success is-dismissible\"><p><strong>SpinupWP</strong> — {$msg} {$link}</p></div>";
 	}
 }
