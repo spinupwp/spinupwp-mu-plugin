@@ -27,10 +27,14 @@ class SpinupWp {
 		if ( defined( 'SPINUPWP_CACHE_PATH' ) ) {
 			$this->cache_path = SPINUPWP_CACHE_PATH;
 
+			// Cache
 			add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_item' ), 100 );
 			add_action( 'admin_init', array( $this, 'handle_manual_purge_action' ) );
 			add_action( 'admin_notices', array( $this, 'show_purge_notice' ) );
 			add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
+
+			// Mail
+			add_action( 'admin_notices', array( $this, 'show_mail_notice' ) );
 		}
 	}
 
@@ -87,9 +91,7 @@ class SpinupWp {
 
 		if ( $success ) {
 			echo '<div class="updated notice"><p>Nginx cache purged.</p></div>';
-		}
-
-		if ( ! $success ) {
+		} else {
 			echo '<div class="error notice"><p>Nginx cache could not be purged.</p></div>';
 		}
 	}
@@ -197,6 +199,19 @@ class SpinupWp {
 		$wp_filesystem->delete( $path, $recursive );
 		
 		return true;
+	}
+
+	/**
+	 * Show a notice about configuring mail.
+	 */
+	public function show_mail_notice() {
+		if ( ! current_user_can( 'manage_options' ) || get_transient( 'spinupwp_mail_notice_dismissed' ) ) {
+			return;
+		}
+
+		$msg  = 'Your site is ready to go! You will need to set up email if you wish to send outgoing emails from this site.';
+		$link = '<a href="#">More&nbsp;info&nbsp;&raquo;</a>';
+		echo "<div class=\"notice notice-success is-dismissible\"><p><strong>SpinupWP</strong> — {$msg} {$link}</p></div>";
 	}
 }
 
