@@ -21,20 +21,30 @@ class SpinupWp {
 	protected $cache_path;
 
 	/**
+	 * @var string
+	 */
+	protected $plugin_url;
+
+	/**
 	 * Init SpinupWp.
 	 */
 	public function init() {
+		if ( is_multisite() ) {
+			$this->plugin_url = network_site_url( '/wp-content/mu-plugins/spinupwp', 'relative' );
+		} else {
+			$this->plugin_url = content_url( '/mu-plugins/spinupwp' );
+		}
+
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		add_action( 'admin_notices', array( $this, 'show_mail_notice' ) );
+		
 		if ( defined( 'SPINUPWP_CACHE_PATH' ) ) {
 			$this->cache_path = SPINUPWP_CACHE_PATH;
 
-			// Cache
 			add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_item' ), 100 );
 			add_action( 'admin_init', array( $this, 'handle_manual_purge_action' ) );
 			add_action( 'admin_notices', array( $this, 'show_purge_notice' ) );
 			add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
-
-			// Mail
-			add_action( 'admin_notices', array( $this, 'show_mail_notice' ) );
 		}
 	}
 
@@ -201,6 +211,17 @@ class SpinupWp {
 		$wp_filesystem->delete( $path, $recursive );
 		
 		return true;
+	}
+
+	/**
+	 * Enqueue admin scripts.
+	 */
+	public function enqueue_scripts() {
+		if ( ! current_user_can( 'manage_options' ) || get_transient( 'spinupwp_mail_notice_dismissed' ) ) {
+			return;
+		}
+
+		wp_enqueue_script( 'spinupwp-dismiss', $this->plugin_url . '/assets/dismiss-notice.js', array( 'jquery' ), '1.0' );
 	}
 
 	/**
