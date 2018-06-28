@@ -218,7 +218,7 @@ class SpinupWp {
 	 * Enqueue admin scripts.
 	 */
 	public function enqueue_scripts() {
-		if ( ! current_user_can( 'manage_options' ) || get_transient( 'spinupwp_mail_notice_dismissed' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || get_site_transient( 'spinupwp_mail_notice_dismissed' ) ) {
 			return;
 		}
 
