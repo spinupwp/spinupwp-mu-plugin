@@ -37,6 +37,7 @@ class SpinupWp {
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'admin_notices', array( $this, 'show_mail_notice' ) );
+		add_action( 'wp_ajax_spinupwp_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
 		
 		if ( defined( 'SPINUPWP_CACHE_PATH' ) ) {
 			$this->cache_path = SPINUPWP_CACHE_PATH;
@@ -228,13 +229,25 @@ class SpinupWp {
 	 * Show a notice about configuring mail.
 	 */
 	public function show_mail_notice() {
-		if ( ! current_user_can( 'manage_options' ) || get_transient( 'spinupwp_mail_notice_dismissed' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || get_site_transient( 'spinupwp_mail_notice_dismissed' ) ) {
 			return;
 		}
 
-		$msg  = __( 'Your site is ready to go! You will need to set up email if you wish to send outgoing emails from this site.', 'spinupwp' );
-		$link = sprintf( '<a href="%s">%s &raquo;</a>', '#', __( 'More info', 'spinupwp' ) );
-		echo "<div class=\"notice notice-success is-dismissible\"><p><strong>SpinupWP</strong> — {$msg} {$link}</p></div>";
+		$msg   = __( 'Your site is ready to go! You will need to set up email if you wish to send outgoing emails from this site.', 'spinupwp' );
+		$link  = sprintf( '<a href="%s">%s &raquo;</a>', '#', __( 'More info', 'spinupwp' ) );
+		$nonce = wp_create_nonce( 'dismiss-notice' );
+		echo "<div class=\"spinupwp notice notice-success is-dismissible\" data-nonce=\"{$nonce}\"><p><strong>SpinupWP</strong> — {$msg} {$link}</p></div>";
+	}
+
+	/**
+	 * Handle AJAX request to dismiss notice.
+	 */	
+	public function ajax_dismiss_notice() {
+		if ( ! check_ajax_referer( 'dismiss-notice', 'nonce', false ) || ! current_user_can( 'manage_options' ) ) {
+			wp_die( -1, 403 );
+		}
+
+		set_site_transient( 'spinupwp_mail_notice_dismissed', true );
 	}
 }
 
