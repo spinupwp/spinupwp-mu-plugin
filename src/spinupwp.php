@@ -36,8 +36,13 @@ class SpinupWp {
 		}
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
-		add_action( 'admin_notices', array( $this, 'show_mail_notice' ) );
 		add_action( 'wp_ajax_spinupwp_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
+
+		if ( is_multisite() ) {
+			add_action( 'network_admin_notices', array( $this, 'show_mail_notice' ) );
+		} else {
+			add_action( 'admin_notices', array( $this, 'show_mail_notice' ) );
+		}
 		
 		if ( defined( 'SPINUPWP_CACHE_PATH' ) ) {
 			$this->cache_path = SPINUPWP_CACHE_PATH;
