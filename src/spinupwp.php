@@ -218,7 +218,7 @@ class SpinupWp {
 	 * Enqueue admin scripts.
 	 */
 	public function enqueue_scripts() {
-		if ( ! current_user_can( 'manage_options' ) || get_site_transient( 'spinupwp_mail_notice_dismissed' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || get_site_option( 'spinupwp_mail_notice_dismissed' ) ) {
 			return;
 		}
 
@@ -229,7 +229,7 @@ class SpinupWp {
 	 * Show a notice about configuring mail.
 	 */
 	public function show_mail_notice() {
-		if ( ! current_user_can( 'manage_options' ) || get_site_transient( 'spinupwp_mail_notice_dismissed' ) ) {
+		if ( ! current_user_can( 'manage_options' ) || get_site_option( 'spinupwp_mail_notice_dismissed' ) ) {
 			return;
 		}
 
@@ -247,7 +247,7 @@ class SpinupWp {
 			wp_die( -1, 403 );
 		}
 
-		set_site_transient( 'spinupwp_mail_notice_dismissed', true );
+		update_site_option( 'spinupwp_mail_notice_dismissed', true );
 	}
 }
 
