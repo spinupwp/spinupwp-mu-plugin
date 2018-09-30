@@ -29,11 +29,8 @@ class SpinupWp {
 	 * Init SpinupWp.
 	 */
 	public function init() {
-		if ( is_multisite() ) {
-			$this->plugin_url = network_site_url( '/wp-content/mu-plugins/spinupwp', 'relative' );
-		} else {
-			$this->plugin_url = content_url( '/mu-plugins/spinupwp' );
-		}
+		$this->cache_path = defined( 'SPINUPWP_CACHE_PATH' ) ? SPINUPWP_CACHE_PATH : null;
+		$this->plugin_url = is_multisite() ? network_site_url( '/wp-content/mu-plugins/spinupwp', 'relative' ) : content_url( '/mu-plugins/spinupwp' );
 
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		add_action( 'wp_ajax_spinupwp_dismiss_notice', array( $this, 'ajax_dismiss_notice' ) );
@@ -43,15 +40,11 @@ class SpinupWp {
 		} else {
 			add_action( 'admin_notices', array( $this, 'show_mail_notice' ) );
 		}
-		
-		if ( defined( 'SPINUPWP_CACHE_PATH' ) ) {
-			$this->cache_path = SPINUPWP_CACHE_PATH;
 
-			add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_item' ), 100 );
-			add_action( 'admin_init', array( $this, 'handle_manual_purge_action' ) );
-			add_action( 'admin_notices', array( $this, 'show_purge_notice' ) );
-			add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
-		}
+		add_action( 'admin_bar_menu', array( $this, 'add_admin_bar_item' ), 100 );
+		add_action( 'admin_init', array( $this, 'handle_manual_purge_action' ) );
+		add_action( 'admin_notices', array( $this, 'show_purge_notice' ) );
+		add_action( 'transition_post_status', array( $this, 'transition_post_status' ), 10, 3 );
 	}
 
 	/**
@@ -64,17 +57,41 @@ class SpinupWp {
 			return;
 		}
 
+		if ( ! $this->cache_path && ! wp_using_ext_object_cache() ) {
+			return;
+		}
+
 		$wp_admin_bar->add_node( array(
 			'id'    => 'spinupwp',
 			'title' => 'SpinupWP',
 		) );
 
-		$wp_admin_bar->add_node( array(
-			'parent' => 'spinupwp',
-			'id'     => 'spinupwp-purge-cache',
-			'title'  => 'Purge Cache',
-			'href'   => wp_nonce_url( add_query_arg( 'spinupwp_action', 'purge-cache', admin_url() ), 'purge-cache' ),
-		) );
+		if ( wp_using_ext_object_cache() && $this->cache_path ) {
+			$wp_admin_bar->add_node( array(
+				'parent' => 'spinupwp',
+				'id'     => 'spinupwp-purge-all',
+				'title'  => 'Purge All Caches',
+				'href'   => wp_nonce_url( add_query_arg( 'spinupwp_action', 'purge-all', admin_url() ), 'purge-all' ),
+			) );
+		}
+
+		if ( wp_using_ext_object_cache() ) {
+			$wp_admin_bar->add_node( array(
+				'parent' => 'spinupwp',
+				'id'     => 'spinupwp-purge-object',
+				'title'  => 'Purge Object Cache',
+				'href'   => wp_nonce_url( add_query_arg( 'spinupwp_action', 'purge-object', admin_url() ), 'purge-object' ),
+			) );
+		}
+
+		if ( $this->cache_path ) {
+			$wp_admin_bar->add_node( array(
+				'parent' => 'spinupwp',
+				'id'     => 'spinupwp-purge-page',
+				'title'  => 'Purge Page Cache',
+				'href'   => wp_nonce_url( add_query_arg( 'spinupwp_action', 'purge-page', admin_url() ), 'purge-page' ),
+			) );	
+		}		
 	}
 
 	/**
@@ -83,7 +100,7 @@ class SpinupWp {
 	public function handle_manual_purge_action() {
 		$action = filter_input( INPUT_GET, 'spinupwp_action' );
 
-		if ( ! $action ) {
+		if ( ! $action || ! in_array( $action, array( 'purge-all', 'purge-object', 'purge-page' ) ) ) {
 			return;
 		}
 
@@ -91,8 +108,25 @@ class SpinupWp {
 			return;
 		}
 
-		$purge = $this->purge_cache();
-		wp_safe_redirect( add_query_arg( 'purge_success', (int) $purge, admin_url() ) );
+		if ( 'purge-all' === $action ) {
+			$purge = wp_cache_flush() && $this->purge_cache();
+			$type  = 'all';
+		}
+
+		if ( 'purge-object' === $action ) {
+			$purge = wp_cache_flush();
+			$type  = 'object';
+		}
+
+		if ( 'purge-page' === $action ) {
+			$purge = $this->purge_cache();
+			$type  = 'page';
+		}
+
+		wp_safe_redirect( add_query_arg( array(
+			'purge_success' => (int) $purge,
+			'cache_type'    => $type,
+		), admin_url() ) );
 	}
 
 	/**
@@ -100,17 +134,28 @@ class SpinupWp {
 	 */
 	public function show_purge_notice() {
 		$success = filter_input( INPUT_GET, 'purge_success' );
+		$type    = filter_input( INPUT_GET, 'cache_type' );
+		$msg     = '';
 
-		if ( is_null( $success ) ) {
+		if ( is_null( $success ) || is_null( $type ) ) {
 			return;
 		}
 
-		if ( $success ) {
-			$msg = __( 'Nginx cache purged.', 'spinupwp' );
-			echo "<div class=\"notice notice-success\"><p>{$msg}</p></div>";
-		} else {
-			$msg = __( 'Nginx cache could not be purged.', 'spinupwp' );
-			echo "<div class=\"notice notice-error\"><p>{$msg}</p></div>";
+		if ( 'all' === $type ) {
+			$msg = $success ? __( 'All caches successfully purged.', 'spinupwp' ) : __( 'Caches could not be purged.', 'spinupwp' );
+		}
+
+		if ( 'object' === $type ) {
+			$msg = $success ? __( 'Object cache successfully purged.', 'spinupwp' ) : __( 'Object cache could not be purged.', 'spinupwp' );
+		}
+
+		if ( 'page' === $type ) {
+			$msg = $success ? __( 'Page cache successfully purged.', 'spinupwp' ) : __( 'Page cache could not be purged.', 'spinupwp' );
+		}
+
+		if ( $msg ) {
+			$notice_type = $success ? 'success' : 'error';
+			echo "<div class=\"notice notice-{$notice_type}\"><p>{$msg}</p></div>";
 		}
 	}
 
@@ -128,6 +173,10 @@ class SpinupWp {
 	 * @return bool
 	 */
 	public function transition_post_status( $new_status, $old_status, $post ) {
+		if ( ! $this->cach_path ) {
+			return false;
+		}
+
 		if ( ! in_array( get_post_type( $post ), array( 'post', 'page' ) ) ) {
 			return false;
 		}
