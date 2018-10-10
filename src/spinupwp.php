@@ -173,7 +173,7 @@ class SpinupWp {
 	 * @return bool
 	 */
 	public function transition_post_status( $new_status, $old_status, $post ) {
-		if ( ! $this->cach_path ) {
+		if ( ! $this->cache_path ) {
 			return false;
 		}
 
