@@ -252,7 +252,9 @@ class SpinupWp {
 	 * @return bool
 	 */
 	protected function delete( $path, $recursive = false ) {
-		global $wp_filesystem;
+		if ( ! file_exists( $path ) ) {
+			return true;
+		}
 
 		$context = $path;
 		if ( is_file( $path ) ) {
@@ -263,6 +265,7 @@ class SpinupWp {
 			return false;
 		}
 
+		global $wp_filesystem;
 		$wp_filesystem->delete( $path, $recursive );
 		
 		return true;
