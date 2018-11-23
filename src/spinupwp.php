@@ -10,7 +10,7 @@ Author URI: https://deliciousbrains.com/
 
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
-    exit;
+	exit;
 }
 
 class SpinupWp {
@@ -255,6 +255,10 @@ class SpinupWp {
 		if ( ! file_exists( $path ) ) {
 			return true;
 		}
+		
+		if ( ! is_writable( $path ) ) {
+			return $this->delete_via_cache_daemon( $path );
+		}
 
 		$context = $path;
 		if ( is_file( $path ) ) {
@@ -269,6 +273,27 @@ class SpinupWp {
 		$wp_filesystem->delete( $path, $recursive );
 		
 		return true;
+	}
+	
+	/**
+	 * Use SpinupWP daemon to purge cache.
+	 *
+	 * @param string $path
+	 * @return bool
+	 */
+	protected function delete_via_cache_daemon( $path ) {
+		$fp = fsockopen( '127.0.0.1', '7836' );
+
+		if ( $fp ) {
+			fwrite( $fp, $path . "\n" );
+			
+			$result = fread( $fp, 512 );
+			fclose( $fp );
+			
+			return (bool) preg_match('/^Purge:\sSuccess/', $result);
+		}
+
+		return false;
 	}
 
 	/**
