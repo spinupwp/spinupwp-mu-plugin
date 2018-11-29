@@ -252,6 +252,22 @@ class SpinupWp {
 	 * @return bool
 	 */
 	protected function delete( $path, $recursive = false ) {
+		if ( file_exists( $path ) && is_writable( $path ) ) {
+			$context = $path;
+			if ( is_file( $path ) ) {
+				$context = dirname( $path );
+			}
+
+			if ( ! WP_Filesystem( false, $context, true ) ) {
+				return false;
+			}
+
+			global $wp_filesystem;
+			$wp_filesystem->delete( $path, $recursive );
+
+			return true;
+		}
+
 		return $this->delete_via_cache_daemon( $path );
 	}
 	
