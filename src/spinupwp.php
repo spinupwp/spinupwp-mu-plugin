@@ -280,7 +280,7 @@ class SpinupWp {
 	 * @return bool
 	 */
 	protected function delete_via_cache_daemon( $path ) {
-		$fp = fsockopen( '127.0.0.1', '7836' );
+		$fp = @fsockopen( '127.0.0.1', '7836' );
 
 		if ( $fp ) {
 			fwrite( $fp, $path . "\n" );
