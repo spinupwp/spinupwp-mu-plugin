@@ -253,6 +253,8 @@ class SpinupWp {
 	 */
 	protected function delete( $path, $recursive = false ) {
 		if ( file_exists( $path ) && is_writable( $path ) ) {
+			require_once( ABSPATH . '/wp-admin/includes/file.php' );
+
 			$context = $path;
 			if ( is_file( $path ) ) {
 				$context = dirname( $path );
