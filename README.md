@@ -4,7 +4,7 @@ This must-use plugin adds page cache purging functionality to your WordPress sit
 
 ## Install
 
-Copy the `src` directory to `/wp-content/mu-plugins`, giving a directory structure like so:
+Copy the contents of the `src` directory to `/wp-content/mu-plugins`, giving a directory structure like so:
 
 ```
 ├── wp-content
