@@ -4,12 +4,21 @@ This must-use plugin adds page cache purging functionality to your WordPress sit
 
 ## Install
 
-1. Clone or download his repository.
-1. Rename the `src` directory to `spinupwp-mu-plugin`.
-1. Copy the `spinupwp-mu-plugin` directory to `/wp-content/mu-plugins`.
-1. Add the following constants to your `wp-config.php`:
+Copy the `src` directory to `/wp-content/mu-plugins`, giving a directory structure like so:
 
 ```
+├── wp-content
+    ├── mu-plugins
+        ├── spinupwp
+        └── spinupwp.php
+    ├── plugins
+    └── themes
+```
+
+Add the following constants to your `wp-config.php`:
+
+```
+define( 'WP_CACHE_KEY_SALT', '{DOMAIN}' );
 define( 'WP_REDIS_SELECTIVE_FLUSH', true );
 define( 'SPINUPWP_CACHE_PATH', '/sites/{DOMAIN}/cache' );
 ```
