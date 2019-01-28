@@ -20,5 +20,5 @@ Add the following constants to your `wp-config.php`:
 ```
 define( 'WP_CACHE_KEY_SALT', '{DOMAIN}' );
 define( 'WP_REDIS_SELECTIVE_FLUSH', true );
-define( 'SPINUPWP_CACHE_PATH', '/sites/{DOMAIN}/cache' );
+define( 'SPINUPWP_CACHE_PATH', '/cache/{DOMAIN}' );
 ```
