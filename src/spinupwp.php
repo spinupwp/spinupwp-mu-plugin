@@ -123,10 +123,12 @@ class SpinupWp {
 			$type  = 'page';
 		}
 
+		$redirect_url = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : admin_url();
+
 		wp_safe_redirect( add_query_arg( array(
 			'purge_success' => (int) $purge,
 			'cache_type'    => $type,
-		), admin_url() ) );
+		), $redirect_url ) );
 	}
 
 	/**
