@@ -1,11 +1,16 @@
 {
-    "name": "deliciousbrains/spinupwp-mu-plugin",
-    "description": "WordPress must-use plugin for sites hosted with SpinupWP",
-    "license": "GPLv2",
-    "authors": [
-        {
-            "name": "Delicious Brains",
-            "email": "nom@deliciousbrains.com"
-        }
-    ]
+  "name": "deliciousbrains/spinupwp-mu-plugin",
+  "description": "WordPress must-use plugin for sites hosted with SpinupWP",
+  "license": "GPLv2",
+  "authors": [
+    {
+      "name": "Delicious Brains",
+      "email": "nom@deliciousbrains.com"
+    }
+  ],
+  "type": "wordpress-muplugin",
+  "require": {
+    "composer/installers": "~1.0",
+    "lkwdwrd/wp-muplugin-loader": "~1.0.0"
+  }
 }
