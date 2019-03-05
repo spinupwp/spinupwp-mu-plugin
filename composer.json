@@ -1,7 +1,7 @@
 {
   "name": "deliciousbrains/spinupwp-mu-plugin",
   "description": "WordPress must-use plugin for sites hosted with SpinupWP",
-  "license": "GPLv2",
+  "license": "GPL-2.0+",
   "authors": [
     {
       "name": "Delicious Brains",
