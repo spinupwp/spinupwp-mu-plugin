@@ -4,7 +4,13 @@ This must-use plugin adds page cache purging functionality to your WordPress sit
 
 ## Install
 
-Copy the contents of the `src` directory to `/wp-content/mu-plugins`, giving a directory structure like so:
+You can install the mu-plugin with Composer:
+
+```bash
+composer require deliciousbrains/spinupwp-mu-plugin
+```
+
+Or manually by downloading the zip and then copying the contents of the `src` directory to `/wp-content/mu-plugins`, giving a directory structure like so:
 
 ```
 ├── wp-content
@@ -15,7 +21,7 @@ Copy the contents of the `src` directory to `/wp-content/mu-plugins`, giving a d
     └── themes
 ```
 
-Add the following constants to your `wp-config.php`:
+Finally add the following constants to your `wp-config.php`:
 
 ```
 define( 'WP_CACHE_KEY_SALT', '{DOMAIN}' );
