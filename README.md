@@ -1,4 +1,6 @@
-# SpinupWP MU Plugin
+> This mu-plugin has been superseded by our [new plugin](https://github.com/deliciousbrains/spinupwp-plugin) which can be download at [wordpress.org/plugins/spinupwp](https://wordpress.org/plugins/spinupwp/)
+
+# SpinupWP MU Plugin (deprecated)
 
 This must-use plugin adds page cache purging functionality to your WordPress site. In addition to automatically clearing the page cache for individual posts, pages, and other content when it is updated, this plugin allows you to purge the cache for the whole site as well. You will need to download this plugin and install it in the /wp-content/mu-plugins/ folder.
 
